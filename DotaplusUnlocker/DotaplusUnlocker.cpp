@@ -37,6 +37,7 @@ constexpr int32_t CGC_OFFSET = 0x598;
 constexpr int32_t PTR_18_OFFSET = 0x18;
 constexpr int32_t CACHE_ZERO_CHECK = 0x0;
 constexpr int32_t CACHE_FAIL_CHECK = 0x48;
+
 constexpr int32_t GAME_ACCOUNT_PLUS_OFFSET = 0x20;
 constexpr int32_t DOTAPLUS_OFFSET = 0x2C;
 constexpr const char* ACHIEVEMENT_DESCRIPTION = "#DOTA_WinterMajor2016_Achievement_Win_10000xp_Wagering_Description";
@@ -66,7 +67,7 @@ blackbone::ptr_t GetCGCClientSharedObjectCache(blackbone::ProcessMemory& memory,
 void ProcessDotaplus(blackbone::ProcessMemory& memory, blackbone::ptr_t CGCClientSharedObjectCache) {
     while (true) {
         auto ptr_18 = memory.Read<blackbone::ptr_t>(CGCClientSharedObjectCache + PTR_18_OFFSET).result();
-        auto CGCClientSharedObjectTypeCache = memory.Read<blackbone::ptr_t>(ptr_18 + GAME_ACCOUNT_PLUS_OFFSET).result();
+        auto CGCClientSharedObjectTypeCache = memory.Read<blackbone::ptr_t>(ptr_18 + PTR_18_OFFSET).result();
         auto CDOTAGameAccountPlus = memory.Read<blackbone::ptr_t>(CGCClientSharedObjectTypeCache + GAME_ACCOUNT_PLUS_OFFSET).result();
 
         std::cout << dye::light_blue("CDOTAGameAccountPlus address: 0x") << dye::yellow(std::hex) << CDOTAGameAccountPlus << std::dec << std::endl;
@@ -77,26 +78,21 @@ void ProcessDotaplus(blackbone::ProcessMemory& memory, blackbone::ptr_t CGCClien
         char description_buffer[256] = { 0 };
         memory.Read(CDOTAGameAccountPlus + 0x51, sizeof(description_buffer), description_buffer);
 
-        if (strcmp(description_buffer, ACHIEVEMENT_DESCRIPTION) == 0) {
-            if (DotaplusValue == 0) {
-                memory.Write<uint32_t>(CDOTAGameAccountPlus + DOTAPLUS_OFFSET, 2);
-                std::cout << dye::light_green("Modified Dotaplus value from 0 to 2!") << std::endl;
-            }
-            else if (DotaplusValue == 1 || DotaplusValue == 2) {
-                std::cout << dye::yellow("Dotaplus is already enabled.") << std::endl;
-            }
-            else {
-                std::cout << dye::red("Unexpected Dotaplus value: ") << dye::green(DotaplusValue) << std::endl;
-            }
-            break;
+        if (DotaplusValue == 0) {
+            memory.Write<uint32_t>(CDOTAGameAccountPlus + DOTAPLUS_OFFSET, 2);
+            std::cout << dye::light_green("Modified Dotaplus value from 0 to 2!") << std::endl;
+        }
+        else if (DotaplusValue == 1 || DotaplusValue == 2) {
+            std::cout << dye::yellow("Dotaplus is already enabled.") << std::endl;
         }
         else {
-            std::cout << dye::red("Achievement description mismatch! Retrying...") << std::endl;
-            Sleep(100);
-            CGCClientSharedObjectCache = GetCGCClientSharedObjectCache(memory, CGCClientSharedObjectCache);
+            std::cout << dye::red("Unexpected Dotaplus value: ") << dye::green(DotaplusValue) << std::endl;
         }
+        break;
     }
 }
+    
+
 
 void Dotaplus(blackbone::Process& dota_proc, blackbone::ProcessMemory& memory) {
     auto client_module = dota_proc.modules().GetModule(L"client.dll")->baseAddress;
