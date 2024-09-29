@@ -68,7 +68,7 @@ void ProcessDotaplus(blackbone::ProcessMemory& memory, blackbone::ptr_t CGCClien
     while (true) {
         auto ptr_18 = memory.Read<blackbone::ptr_t>(CGCClientSharedObjectCache + PTR_18_OFFSET).result();
         auto CGCClientSharedObjectTypeCache = memory.Read<blackbone::ptr_t>(ptr_18 + PTR_18_OFFSET).result();
-        Sleep(300);
+        Sleep(200);
         auto CDOTAGameAccountPlus = memory.Read<blackbone::ptr_t>(CGCClientSharedObjectTypeCache + GAME_ACCOUNT_PLUS_OFFSET).result();
  
         std::cout << dye::light_blue("CDOTAGameAccountPlus address: 0x") << dye::yellow(std::hex) << CDOTAGameAccountPlus << std::dec << std::endl;
